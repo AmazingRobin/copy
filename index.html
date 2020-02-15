@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>videoAD</title>
+  <style>
+    h1 {
+      margin-left: 30px;
+    }
+
+    .mask {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: rgba(0, 0, 0, .8);
+      z-index: 99;
+    }
+
+    .player {
+      display: none;
+      width: 320px;
+      height: 568px;
+      background: rgba(0, 0, 0, .2);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+    }
+
+    button {
+      padding: 15px 20px;
+      margin: 30px;
+      border-radius: 2px;
+      background: #a7cae1;
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1><span id="second">0</span>秒后可以触发广告</h1>
+  <button onclick="videoAD.setMode(10)">10秒后触发广告</button>
+  <button onclick="videoAD.setMode(60*10)">10分钟后触发广告</button>
+  <button onclick="videoAD.setMode(60*30)">30分钟后触发广告</button>
+
+  <br>
+
+  <button onclick="videoAD.chapterChange()">上一章</button>
+  <button onclick="videoAD.chapterChange()">下一章</button>
+
+  <div class="mask" id="mask" onclick="videoAD.adClose()"> </div>
+
+  <a href="http://www.baidu.com" target="_blank">
+    <video class="player" id="video" src="" preload="auto" controls="controls" loop="loop" meted="meted" meted="meted" autoplay="autoplay"></video>
+  </a>
+
+  <script>
+    var videoAD = {
+      mode: localStorage.getItem('mode') || 10, // 5秒进入点击广告
+      enterAd: false, // 下次点击是否进入广告
+      adLinks: [
+        'http://v5-dy.ixigua.com/94a8e6dd497f69ca666f154df6a5f29d/5e479bce/video/tos/cn/tos-cn-ve-15/03577a38d37c41d79e71517d10ae12b6/?a=1128&br=0&bt=1534&cr=0&cs=0&dr=0&ds=3&er=&l=20200215141947010008073045132BA3A7&lr=aweme&qs=0&rc=M3lpZnE5ZmY0cjMzN2kzM0ApMzM2ZmhoNDxpN2c8aWU2OGdqYmtxYTUwamxfLS0uLS9zczEyL2NeLzVgL2MyM2NjYzQ6Yw%3D%3D&vl=&vr=',
+        'http://v26-dy.ixigua.com/3419165f2c32d2a40fdd9c6e3150f388/5e479beb/video/tos/cn/tos-cn-ve-15/39d5da7c8f46498299cbc1c137803260/?a=1128&br=0&bt=1604&cr=0&cs=0&dr=0&ds=3&er=&l=202002151420190100140470972C21E11F&lr=aweme&qs=0&rc=M2prNzR1aGttcjMzZWkzM0ApPGZpZ2Y4N2Q3NzxmZmU5NmdicGJoLm1mZzRfLS0wLS9zc2E1YWMxXzQvNTMxYy5hNF86Yw%3D%3D&vl=&vr=',
+        'http://v1-dy.ixigua.com/197c3de15f7f8059861089493b7265bf/5e479c03/video/tos/hxsy/tos-hxsy-ve-0015/cd3a7e2563fc46d8b2ea819cae8cc9b3/?a=1128&br=0&bt=1378&cr=0&cs=0&dr=0&ds=3&er=&l=2020021514204401000806814502227C6B&lr=aweme&qs=0&rc=amZpdjR3ZGhvcjMzN2kzM0ApZjQ0NmZnOTw2Nzs5Zjo8aGdkNWYyamVxL3BfLS1iLS9zczMyLzUwNmIuYy8yXmMxMDM6Yw%3D%3D&vl=&vr='
+      ],
+      run: function() {
+        var ls = videoAD.getLs();
+        var sec = document.getElementById('second');
+        if (!ls) {
+          // 第一次进入页面
+          sec.innerHTML = 0;
+          videoAD.enterAd = true;
+          return false;
+        }
+        var aditv = setInterval(function() {
+          var now = Date.now()
+          var gap = parseInt((now - ls) / 1000);
+
+          gap = videoAD.mode - gap;
+          gap = gap > 0 ? gap : 0;
+          videoAD.enterAd = gap > 0 ? false : true; // 控制是否进入广告
+          sec.innerHTML = gap
+          if (gap <= 0) {
+            clearInterval(aditv)
+          }
+        }, 1000)
+      },
+      getLs: function() {
+        var ls = localStorage.getItem('va');
+        ls = ls || 0
+        return ls
+      },
+      chapterChange: function() {
+        if (videoAD.enterAd) {
+          document.getElementById('video').setAttribute('src', videoAD.adLinks[parseInt(Math.random() * (videoAD.adLinks.length))])
+          document.getElementById('mask').style.display = 'block';
+          document.getElementById('video').style.display = 'block';
+          localStorage.setItem('va', Date.now())
+          videoAD.run();
+        } else {
+          alert('不弹广告，进入下一章节')
+        }
+      },
+      setMode(x) {
+        videoAD.mode = x;
+        localStorage.setItem('mode', x);
+        videoAD.run();
+      },
+      adClose: function() {
+        document.getElementById('mask').style.display = 'none';
+        document.getElementById('video').style.display = 'none';
+      }
+    }
+    videoAD.run();
+
+  </script>
+</body>
+
+</html>
